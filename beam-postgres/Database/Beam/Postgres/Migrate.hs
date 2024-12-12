@@ -372,7 +372,7 @@ getDbConstraintsForSchemas subschemas conn =
      primaryKeys <-
        map (\(relnm, schema, cols) -> Db.SomeDatabasePredicate (Db.TableHasPrimaryKey (Db.QualifiedName schema relnm) (V.toList cols))) <$>
        case subschemas of
-        Just ss -> Pg.query conn (primaryKeyQuery "ns.nspname = ?") (Pg.Only $ Pg.In ss)
+        Just ss -> Pg.query conn (primaryKeyQuery "ns.nspname IN ?") (Pg.Only $ Pg.In ss)
         Nothing -> Pg.query_ conn (primaryKeyQuery "ns.nspname = any (current_schemas(false))")
 
      let enumerations =
@@ -395,7 +395,7 @@ getDbConstraintsForSchemas subschemas conn =
                               Db.SomeDatabasePredicate $
                                 Db.TableHasIndex (Db.QualifiedName (Just schNm) tblNm) nm (if isUnique then Just UNIQUE else Nothing) (V.toList cols) (Db.simplifyIndexPredicate <$> mPredicate)) <$>
        case subschemas of
-        Just ss -> Pg.query conn (indexQuery "n.nspname = ?") (Pg.Only $ Pg.In ss)
+        Just ss -> Pg.query conn (indexQuery "n.nspname IN ?") (Pg.Only $ Pg.In ss)
         Nothing -> Pg.query_ conn (indexQuery "n.nspname = any (current_schemas(false))")
 
      pure (enumerations ++ tblsExist ++ columnChecks ++ primaryKeys ++ indexChecks)
