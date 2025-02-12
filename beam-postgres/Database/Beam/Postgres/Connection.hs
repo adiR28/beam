@@ -77,6 +77,7 @@ import           System.Clock
 
 import           Network.URI (uriToString)
 import Control.Exception (try)
+import qualified Control.Exception as CE
 
 data PgStream a = PgStreamDone     (Either BeamRowReadError a)
                 | PgStreamContinue (Maybe PgI.Row -> IO (PgStream a))
@@ -199,11 +200,11 @@ withPgDebug dbg conn (Pg action) =
              case action' of
                 PgStreamDone (Right x) -> do
                   start <- getTime Monotonic
-                  (respWithException ::Either SomeException a) <- try $ Pg.execute_ conn (Pg.Query query)
+                  (respWithException ::Either BeamRowReadError a) <- try $ Pg.execute_ conn (Pg.Query query)
                   case respWithException of
                     Left err -> do
                       dbg (decodeUtf8 query)
-                      return (Left $ BeamRowReadError Nothing $ ColumnErrorInternal (show err ) , Nothing) 
+                      return (Left err , Nothing) 
                     Right _ -> do
                       end <- getTime Monotonic
                       (, Just (end - start)) <$> next x
@@ -226,11 +227,11 @@ withPgDebug dbg conn (Pg action) =
       step (PgRunReturning (PgCommandSyntax PgCommandTypeDataUpdateReturning syntax) mkProcess next) =
         do query <- pgRenderSyntax conn syntax
            start <- getTime Monotonic
-           (respWithException :: Either SomeException a) <- try $ Pg.exec conn query
+           (respWithException :: Either BeamRowReadError a) <- try $ Pg.exec conn query
            case respWithException of
             Left err -> do
               dbg (decodeUtf8 query)
-              return $ Left $ BeamRowReadError Nothing $ ColumnErrorInternal (show err )
+              return $ Left err
             Right res -> do 
                 end <- getTime Monotonic
                 let extime = end - start
@@ -245,11 +246,11 @@ withPgDebug dbg conn (Pg action) =
       step (PgRunReturning (PgCommandSyntax _ syntax) mkProcess next) =
         do query <- pgRenderSyntax conn syntax
            start <- getTime Monotonic
-           (respWithException :: Either SomeException a)  <- try $ Pg.execute_ conn (Pg.Query query)
+           (respWithException :: Either BeamRowReadError a)  <- try $ Pg.execute_ conn (Pg.Query query)
            case respWithException of
             Left err -> do
               dbg (decodeUtf8 query)
-              return $ Left $ BeamRowReadError Nothing $ ColumnErrorInternal (show err )
+              return $ Left err
             Right _ -> do
               end <- getTime Monotonic
               let extime = end - start
