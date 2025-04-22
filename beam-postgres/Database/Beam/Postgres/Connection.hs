@@ -203,7 +203,7 @@ withPgDebug dbg conn (Pg action) =
                   case respWithException of
                     Left err -> do
                       dbg (decodeUtf8 query)
-                      return (Left $ BeamRowReadError Nothing $ ColumnErrorInternal (show err ) , Nothing) 
+                      return (Left err, Nothing) 
                     Right _ -> do
                       end <- getTime Monotonic
                       (, Just (end - start)) <$> next x
@@ -230,7 +230,7 @@ withPgDebug dbg conn (Pg action) =
            case respWithException of
             Left err -> do
               dbg (decodeUtf8 query)
-              return $ Left $ BeamRowReadError Nothing $ ColumnErrorInternal (show err )
+              return $ Left err
             Right res -> do 
                 end <- getTime Monotonic
                 let extime = end - start
@@ -249,7 +249,7 @@ withPgDebug dbg conn (Pg action) =
            case respWithException of
             Left err -> do
               dbg (decodeUtf8 query)
-              return $ Left $ BeamRowReadError Nothing $ ColumnErrorInternal (show err )
+              return $ Left err
             Right _ -> do
               end <- getTime Monotonic
               let extime = end - start
