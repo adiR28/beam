@@ -137,7 +137,6 @@ import           Data.Hashable
 import qualified Data.List.NonEmpty as NE
 import           Data.Proxy
 import           Data.Scientific (Scientific, formatScientific, FPFormat(Fixed))
-import qualified Data.Serialize as DS
 import           Data.String
 import qualified Data.Text as T
 import           Data.Time (LocalTime)
@@ -726,14 +725,6 @@ instance (ToJSON a) => ToJSON (PgJSON a) where
 
 instance (FromJSON a) => FromJSON (PgJSON a) where
   parseJSON v = PgJSON <$> parseJSON v
-
-instance (ToJSON a, FromJSON a) => DS.Serialize (PgJSON a) where
-  put (PgJSON x) = DS.put (BL.toStrict (Data.Aeson.encode x))
-  get = do
-    bs <- DS.get @BL.ByteString
-    case Data.Aeson.eitherDecode bs of
-      Left err -> fail ("Failed to deserialize PgJSON: " ++ err)
-      Right x  -> pure (PgJSON x)
 
 -- | The Postgres @JSONB@ type, which stores JSON-encoded data in a
 -- postgres-specific binary format. Like 'PgJSON', the type parameter indicates
