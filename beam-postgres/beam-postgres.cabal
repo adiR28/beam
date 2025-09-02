@@ -57,7 +57,8 @@ library
                       tagged               >=0.8  && <0.9,
 
                       haskell-src-exts     >=1.18 && <1.22,
-                      clock
+                      clock,
+                      cereal
   default-language:   Haskell2010
   default-extensions: ScopedTypeVariables, OverloadedStrings, MultiParamTypeClasses, RankNTypes, FlexibleInstances,
                       DeriveDataTypeable, DeriveGeneric, StandaloneDeriving, TypeFamilies, GADTs, OverloadedStrings,
